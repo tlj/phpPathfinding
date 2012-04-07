@@ -32,14 +32,20 @@ class NodeGraph2D implements NodeGraph {
 		$this->sizeX = $sizeX;
 		$this->sizeY = $sizeY;
 
-		$this->tiles = array_fill(0, $sizeX, array_fill(0, $sizeY, 0.0));
-        foreach ($this->tiles as $y => $row) {
-            foreach ($row as $x => $col) {
+        $this->initTiles();
+
+        foreach ($this->tiles as $x => $col) {
+            foreach ($col as $y => $row) {
                 $this->tilesLookup[] = array($x, $y);
                 $this->tilesLookupReversed[$x][$y] = count($this->tilesLookup) - 1;
             }
         }
 	}
+
+    public function initTiles()
+    {
+        $this->tiles = array_fill(0, $this->sizeX, array_fill(0, $this->sizeY, 0.0));
+    }
 	
 	public function XY2Node($X, $Y) {
         return $this->tilesLookupReversed[$X][$Y];
