@@ -3,8 +3,6 @@
 
 namespace PathFinder;
 
-define('PATHFINDER_OCCUPIED_TILE', 255);
-
 class NodeGraph2D implements NodeGraph {
 	// This is an example class of a node graph.
 	// We implement the interface as defined by NodeGraph
@@ -13,11 +11,13 @@ class NodeGraph2D implements NodeGraph {
 	// $Tiles is a two-dimensional array (Array[X][Y])
 	// storing one float which is used for G cost or to define an obstruction.
 
-    private $tiles;
+    protected $tiles;
 	private $tilesLookup;
     private $tilesLookupReversed;
 	private $sizeX;
 	private $sizeY;
+
+    const OCCUPIED_TILE = 255;
 
     private $directions = Array(
 		Array( 0,-1), Array( 1, 0), Array( 0, 1), Array(-1, 0),
@@ -64,7 +64,7 @@ class NodeGraph2D implements NodeGraph {
 	public function random() {
 		$X = rand(1, $this->sizeX-1);
 		$Y = rand(1, $this->sizeY-1);
-		if($this->tiles[$X][$Y] == PATHFINDER_OCCUPIED_TILE) return $this->random();
+		if($this->tiles[$X][$Y] == self::OCCUPIED_TILE) return $this->random();
 		return $this->XY2Node($X, $Y);
 	}
 	
@@ -87,13 +87,13 @@ class NodeGraph2D implements NodeGraph {
 		for($i = 0; $i < 8; ++$i) {
 			$neighbourX = $X + $this->directions[$i][0];
 			$neighbourY = $Y + $this->directions[$i][1];
-			
+
 			if($neighbourX < 0 || $neighbourY < 0 || $neighbourX >= $this->sizeX || $neighbourY >= $this->sizeY)
 				continue;
-			
-			if($this->tiles[$neighbourX][$neighbourY] == PATHFINDER_OCCUPIED_TILE)
+
+			if($this->tiles[$neighbourX][$neighbourY] == self::OCCUPIED_TILE)
 				continue;
-			
+
 			$neighbours[] = $this->XY2Node($neighbourX, $neighbourY);
 		}
 		
@@ -105,9 +105,11 @@ class NodeGraph2D implements NodeGraph {
 		list($FX, $FY) = $this->node2XY($nodeFrom);
 		list($TX, $TY) = $this->node2XY($nodeTo);
 		$G = $this->tiles[$TX][$TY];
-		if($FX == $TX || $FY == $TY)
+		if($FX == $TX || $FY == $TY) {
 			 $G += $this->movementHorizontally;
-		else $G += $this->movementDiagonally;
+        } else {
+            $G += $this->movementDiagonally;
+        }
 		return $G;
 	}
 	
@@ -120,5 +122,20 @@ class NodeGraph2D implements NodeGraph {
     public function getTiles()
     {
         return $this->tiles;
+    }
+
+    public function getTile($x, $y)
+    {
+        return $this->tiles[$x][$y];
+    }
+
+    public function getSizeX()
+    {
+        return $this->sizeX;
+    }
+
+    public function getSizeY()
+    {
+        return $this->sizeY;
     }
 }
