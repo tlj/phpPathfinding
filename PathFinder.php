@@ -94,4 +94,9 @@ class PathFinder {
     {
         return $this->cache;
     }
+
+    public function getDebug()
+    {
+        return $this->debug;
+    }
 }
