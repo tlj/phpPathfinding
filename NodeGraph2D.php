@@ -13,7 +13,9 @@ class NodeGraph2D implements NodeGraph {
 	// $Tiles is a two-dimensional array (Array[X][Y])
 	// storing one float which is used for G cost or to define an obstruction.
 
-	private $tiles;
+    private $tiles;
+	private $tilesLookup;
+    private $tilesLookupReversed;
 	private $sizeX;
 	private $sizeY;
 
@@ -29,17 +31,22 @@ class NodeGraph2D implements NodeGraph {
 	public function __construct($sizeX, $sizeY) {
 		$this->sizeX = $sizeX;
 		$this->sizeY = $sizeY;
+
 		$this->tiles = array_fill(0, $sizeX, array_fill(0, $sizeY, 0.0));
+        foreach ($this->tiles as $y => $row) {
+            foreach ($row as $x => $col) {
+                $this->tilesLookup[] = array($x, $y);
+                $this->tilesLookupReversed[$x][$y] = count($this->tilesLookup) - 1;
+            }
+        }
 	}
 	
 	public function XY2Node($X, $Y) {
-		return ($Y * $this->sizeX) + $X;
+        return $this->tilesLookupReversed[$X][$Y];
 	}
 	
 	public function node2XY($lookup) {
-		$X = $lookup % $this->sizeX;
-		$Y = (int)($lookup / $this->sizeX);
-		return Array($X, $Y);
+        return $this->tilesLookup[$lookup];
 	}
 
 	/// Methods for debugging-ish
