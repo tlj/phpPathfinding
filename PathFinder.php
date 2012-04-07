@@ -10,10 +10,9 @@ define('PATHFINDER_STATUS_CLOSED',		2);
 
 class PathFinder {
 	private $graph;
-	private $limit = 750;
+	private $limit = 1500;
 	private $cache;
-	private $debug;
-	
+
 	function __construct(&$graph) {
 		$this->graph = &$graph;
 	}
@@ -24,8 +23,7 @@ class PathFinder {
 		
 		$closed = 0;
 		$found = FALSE;
-		$this->debug = '';
-		
+
 		$this->cache = Array( // Open and Closed Nodes. Stores calculated costs and parent nodes.
 			$nodeStart => Array(
 				'G' => 0,
@@ -49,9 +47,8 @@ class PathFinder {
 			}
 			
 			if($closed > $this->limit) {
-				$this->debug = 'Hit limit. ('.$this->limit.')';
-				return NULL;
-			}
+                throw new PathFinderException('Hit path limit.');
+            }
 			
 			$neighbours = $this->graph->neighbours($node);
 			foreach($neighbours as $neighbour) {
@@ -86,8 +83,7 @@ class PathFinder {
 			$path[] = $node;
 			return array_reverse($path);
 		}
-		$this->debug = 'Path not found, ran out of open nodes.';
-		return NULL;
+        throw new PathFinderException('Path not found, ran out of open nodes.');
 	}
 
     public function getCache()
@@ -95,8 +91,4 @@ class PathFinder {
         return $this->cache;
     }
 
-    public function getDebug()
-    {
-        return $this->debug;
-    }
 }
