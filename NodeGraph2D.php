@@ -17,8 +17,6 @@ class NodeGraph2D implements NodeGraph {
 	private $sizeX;
 	private $sizeY;
 
-    const OCCUPIED_TILE = 255;
-
     private $directions = Array(
 		Array( 0,-1), Array( 1, 0), Array( 0, 1), Array(-1, 0),
 		Array( 1,-1), Array( 1, 1), Array(-1, 1), Array(-1,-1)
@@ -46,6 +44,14 @@ class NodeGraph2D implements NodeGraph {
     {
         $this->tiles = array_fill(0, $this->sizeX, array_fill(0, $this->sizeY, 0.0));
     }
+
+    public function isOccupied($x, $y)
+    {
+        if (is_object($this->tiles[$x][$y])) {
+            return $this->tiles[$x][$y]->isOccupied();
+        }
+        return false;
+    }
 	
 	public function XY2Node($X, $Y) {
         return $this->tilesLookupReversed[$X][$Y];
@@ -64,7 +70,7 @@ class NodeGraph2D implements NodeGraph {
 	public function random() {
 		$X = rand(1, $this->sizeX-1);
 		$Y = rand(1, $this->sizeY-1);
-		if($this->tiles[$X][$Y] == self::OCCUPIED_TILE) return $this->random();
+		if ($this->isOccupied($X, $Y)) return $this->random();
 		return $this->XY2Node($X, $Y);
 	}
 	
@@ -80,7 +86,7 @@ class NodeGraph2D implements NodeGraph {
 	}
 
 	/// Pathfinding-related stuff
-	function neighbours($node) {
+	function neighbours($node, $ignoreOccupied = null) {
 		list($X, $Y) = $this->node2XY($node);
 		
 		$neighbours = array();
@@ -91,20 +97,28 @@ class NodeGraph2D implements NodeGraph {
 			if($neighbourX < 0 || $neighbourY < 0 || $neighbourX >= $this->sizeX || $neighbourY >= $this->sizeY)
 				continue;
 
-			if($this->tiles[$neighbourX][$neighbourY] == self::OCCUPIED_TILE)
+            $neighbour = $this->XY2Node($neighbourX, $neighbourY);
+
+			if($this->isOccupied($neighbourX, $neighbourY) && $ignoreOccupied !== $neighbour)
 				continue;
 
-			$neighbours[] = $this->XY2Node($neighbourX, $neighbourY);
+			$neighbours[] = $neighbour;
 		}
 		
 		return $neighbours;
 	}
 	
-	function G($nodeFrom, $nodeTo) {
+	function G($nodeFrom, $nodeTo, $movementModifier = 1) {
 		// Assumes we are being given a neighbour, as expected.
 		list($FX, $FY) = $this->node2XY($nodeFrom);
 		list($TX, $TY) = $this->node2XY($nodeTo);
-		$G = $this->tiles[$TX][$TY];
+
+        $tile = $this->tiles[$TX][$TY];
+        if (is_object($tile)) {
+            $G = $tile->getMovementValue();
+        } else {
+		    $G = $this->tiles[$TX][$TY] * $movementModifier;
+        }
 		if($FX == $TX || $FY == $TY) {
 			 $G += $this->movementHorizontally;
         } else {

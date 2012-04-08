@@ -17,7 +17,7 @@ class PathFinder {
 		$this->graph = &$graph;
 	}
 	
-	function find($nodeStart, $nodeEnd) {
+	function find($nodeStart, $nodeEnd, $movementModifier = 1) {
 		$queue = new PriorityQueue(); // Open Nodes ordered based on F cost
 		$queue->setExtractFlags(PriorityQueue::EXTR_DATA);
 		
@@ -33,7 +33,7 @@ class PathFinder {
 			)
 		);
 		$queue->insert($nodeStart, $this->cache[$nodeStart]['F']);
-		
+
 		while(!$queue->isEmpty()) {
 			$node = $queue->extract();
 			
@@ -50,9 +50,9 @@ class PathFinder {
                 throw new PathFinderException('Hit path limit.');
             }
 			
-			$neighbours = $this->graph->neighbours($node);
+			$neighbours = $this->graph->neighbours($node, $nodeEnd);
 			foreach($neighbours as $neighbour) {
-				$G = $this->cache[$node]['G'] + $this->graph->G($node, $neighbour);
+				$G = $this->cache[$node]['G'] + $this->graph->G($node, $neighbour, $movementModifier);
 				
 				if(	isset($this->cache[$neighbour])
 					&& $this->cache[$neighbour]['Status']
