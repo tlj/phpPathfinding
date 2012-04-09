@@ -45,15 +45,17 @@ class NodeGraph2D implements NodeGraph {
         $this->tiles = array_fill(0, $this->sizeX, array_fill(0, $this->sizeY, 0.0));
     }
 
-    public function isOccupied($x, $y)
+    public function isOccupied($tile)
     {
-        if (is_object($this->tiles[$x][$y])) {
-            return $this->tiles[$x][$y]->isOccupied();
-        }
-        return false;
+        return $tile == 255;
     }
-	
-	public function XY2Node($X, $Y) {
+
+    public function getMovementCost($tile, $movementModifier = 1)
+    {
+        return $tile * $movementModifier;
+    }
+
+    public function XY2Node($X, $Y) {
         return $this->tilesLookupReversed[$X][$Y];
 	}
 	
@@ -70,7 +72,9 @@ class NodeGraph2D implements NodeGraph {
 	public function random() {
 		$X = rand(1, $this->sizeX-1);
 		$Y = rand(1, $this->sizeY-1);
-		if ($this->isOccupied($X, $Y)) return $this->random();
+        $tile = $this->tiles[$X][$Y];
+
+		if ($this->isOccupied($tile)) return $this->random();
 		return $this->XY2Node($X, $Y);
 	}
 	
@@ -99,7 +103,7 @@ class NodeGraph2D implements NodeGraph {
 
             $neighbour = $this->XY2Node($neighbourX, $neighbourY);
 
-			if($this->isOccupied($neighbourX, $neighbourY) && $ignoreOccupied !== $neighbour)
+			if($this->isOccupied($neighbour) && $ignoreOccupied !== $neighbour)
 				continue;
 
 			$neighbours[] = $neighbour;
@@ -114,11 +118,7 @@ class NodeGraph2D implements NodeGraph {
 		list($TX, $TY) = $this->node2XY($nodeTo);
 
         $tile = $this->tiles[$TX][$TY];
-        if (is_object($tile)) {
-            $G = $tile->getMovementValue();
-        } else {
-		    $G = $this->tiles[$TX][$TY] * $movementModifier;
-        }
+        $G = $this->getMovementCost($tile, $movementModifier);
 		if($FX == $TX || $FY == $TY) {
 			 $G += $this->movementHorizontally;
         } else {
